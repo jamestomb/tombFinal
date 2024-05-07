@@ -1,0 +1,129 @@
+// Game variables
+var ballX = 200;
+var ballY = 200;
+var p1Y = 150;
+var p2Y = 150;
+var p1score = 0;
+var p2score = 0;
+var paddleHeight = 100;
+var paddleWidth = 10;
+var ballSpeedX = 3;
+var ballSpeedY = 2;
+var currentScene = 0; // 0 - Splash Screen, 1 - Game Screen
+
+// control the player
+var keys = [];
+
+// setting up environment
+var keyPressed = function() {
+    keys[keyCode] = true;
+};
+
+var keyReleased = function() {
+    keys[keyCode] = false;
+};
+
+function drawBitmoji(x, y) {
+    noStroke();
+    fill(240, 218, 144); //skin tone
+    ellipse(x, y, 83, 100); //head
+    fill(255, 255, 255); //cheek
+    arc(x-42, y+37, 28, 55, 0, 361); //leftcheek
+    arc(x+42, y+37, 28, 55, 0, 361); //rightcheek
+    fill(122, 61, 17); //hair
+    quad(x-50, y, x-37, y-32, x-10, y-50, x-30, y-1); //left hair
+    quad(x+49, y-2, x+34, y-32, x+2, y-57, x-40, y-23); //right hair
+    ellipse(x, y-37, 65, 42); //top hair
+    fill(125, 67, 0); //eye colorws
+    ellipse(x-10, y, 6, 6); //left eye
+    ellipse(x+17, y, 6, 6); //right eye
+    fill(212, 170, 34);
+    bezier(x, y, x+21, y+22, x-8, y+20, x-4, y+15); //nose
+    stroke(0, 0, 0);
+    fill(255, 255, 255); //teeth color
+    arc(x+3, y+25, 30, 13, 1, 180); //mouth
+    line(x-14, y+24, x+19, y+24); //top of mouth
+}
+
+function resetBall() {
+    ballX = width / 2;
+    ballY = height / 2;
+    ballSpeedX = -ballSpeedX;
+    ballSpeedY = 3 * (Math.random() > 0.5 ? 1 : -1);
+}
+
+function updateGame() {
+    // directions to move paddles in relation to key pressed
+    if (keys[UP]) { p1Y = max(p1Y - 4, 0); }
+    if (keys[DOWN]) { p1Y = min(p1Y + 4, height - paddleHeight); }
+    if (keys[87]) { p2Y = max(p2Y - 4, 0); }
+    if (keys[83]) { p2Y = min(p2Y + 4, height - paddleHeight); }
+
+    // move the ping pong ball
+    ballX += ballSpeedX;
+    ballY += ballSpeedY;
+
+    // ball collision with top/bottom
+    if (ballY <= 0 || ballY >= height) { ballSpeedY = -ballSpeedY; }
+
+    // ball collision with paddles
+    if (ballX <= paddleWidth && ballY > p2Y && ballY < p2Y + paddleHeight) { ballSpeedX = -ballSpeedX; }
+    else if (ballX >= width - paddleWidth && ballY > p1Y && ballY < p1Y + paddleHeight) { ballSpeedX = -ballSpeedX; }
+
+    // what happens if ball goes out of bounds
+    if (ballX < 0) { p1score++; resetBall(); }
+    else if (ballX > width) { p2score++; resetBall(); }
+}
+
+function drawSplashScreen() {
+    background(255, 255, 255);
+    drawBitmoji(width / 2, height / 2 - 50);
+    fill(0);
+    textSize(20);
+    text("Welcome to James' Pong Game!", 50, 30);
+
+    // drawing play button
+    fill(0, 200, 0);
+    rect(width / 2 - 50, height / 2 + 50, 100, 40);
+    fill(255);
+    textSize(16);
+    text("Play", width / 2 - 20, height / 2 + 70);
+}
+
+//button
+function mousePressed() {
+    // check if the mouse is within the play button area
+    if (currentScene === 0 && mouseX >= width / 2 - 50 && mouseX <= width / 2 + 50 &&
+        mouseY >= height / 2 + 50 && mouseY <= height / 2 + 90) {
+        currentScene = 1; // change the scene to game
+    }
+}
+
+function drawGameScreen() {
+    // clear screen completely
+    background(255, 255, 255);
+    
+    // update and draw game elements
+    updateGame();
+    
+    // draw paddles and ball
+    fill(0, 0, 0);
+    rect(0, p2Y, paddleWidth, paddleHeight);
+    rect(width - paddleWidth, p1Y, paddleWidth, paddleHeight);
+    ellipse(ballX, ballY, 20, 20);
+    
+    // draw scores
+    fill(0);
+    textSize(16);
+    text("Player 1: " + p1score, 20, 20);
+    text("Player 2: " + p2score, width - 100, 20);
+}
+
+// draw function to handle scenes and changes
+var draw = function() {
+    if (currentScene === 0) {
+        drawSplashScreen();
+    } else {
+        drawGameScreen();
+    }
+};
